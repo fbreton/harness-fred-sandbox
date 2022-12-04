@@ -1,0 +1,256 @@
+pipeline:
+  projectIdentifier: Fred_SandBox
+  orgIdentifier: SE_Sandbox
+  tags: {}
+  stages:
+    - stage:
+        name: DeployQA
+        identifier: DeployQA
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: paymentservice
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: <+input>
+                      sources: <+input>
+          environment:
+            environmentRef: QAPayServ
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: QAGKE
+          execution:
+            steps:
+              - step:
+                  type: JiraCreate
+                  name: Jira Create
+                  identifier: JiraCreate
+                  spec:
+                    connectorRef: account.Harness_JIRA
+                    projectKey: HD
+                    issueType: Story
+                    fields:
+                      - name: Description
+                        value: Deployment to QA
+                      - name: Summary
+                        value: Ticket to track deployment of <+service.name>
+                  timeout: 1d
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: StageRollback
+              - step:
+                  type: JiraUpdate
+                  name: Jira Update QATest
+                  identifier: JiraUpdate
+                  spec:
+                    connectorRef: account.Harness_JIRA
+                    issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
+                    transitionTo:
+                      transitionName: Ready For Testing
+                      status: QA Test
+                    fields:
+                      - name: Description
+                        value: In QA, waiting for Approval to go in Prod or rejection
+                  timeout: 1d
+            rollbackSteps:
+              - step:
+                  type: JiraUpdate
+                  name: Jira Update failed
+                  identifier: Jira_Update_falied
+                  spec:
+                    connectorRef: account.Harness_JIRA
+                    issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
+                    transitionTo:
+                      transitionName: Rejected
+                      status: Rejected
+                    fields:
+                      - name: Summary
+                        value: Deployment to QA failed
+                  timeout: 1d
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+    - stage:
+        name: Jira Approve
+        identifier: Jira_Approve
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: JiraApprove
+                  identifier: JiraApprove
+                  type: JiraApproval
+                  timeout: 1d
+                  spec:
+                    approvalCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: true
+                        conditions:
+                          - key: Status
+                            operator: equals
+                            value: Approved
+                    rejectionCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: true
+                        conditions:
+                          - key: Status
+                            operator: equals
+                            value: Rejected
+                    connectorRef: account.Harness_JIRA
+                    projectKey: HD
+                    issueType: Story
+                    issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
+        tags: {}
+    - parallel:
+        - stage:
+            name: RemoveQA
+            identifier: removeqa
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                useFromStage:
+                  stage: DeployQA
+              environment:
+                environmentRef: QAPayServ
+                deployToAll: false
+                infrastructureDefinitions:
+                  - identifier: QAGKE
+              execution:
+                steps:
+                  - step:
+                      type: K8sDelete
+                      name: RemoveQA
+                      identifier: RemoveQA
+                      spec:
+                        deleteResources:
+                          type: ReleaseName
+                          spec:
+                            deleteNamespace: false
+                      timeout: 10m
+                      failureStrategies: []
+                rollbackSteps: []
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: StageRollback
+            when:
+              pipelineStatus: All
+        - stage:
+            name: DeployProd
+            identifier: DeployProd
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                useFromStage:
+                  stage: DeployQA
+              environment:
+                environmentRef: PRODPayserv
+                deployToAll: false
+                infrastructureDefinitions:
+                  - identifier: PRODGKE
+              execution:
+                steps:
+                  - step:
+                      type: JiraUpdate
+                      name: Jira Update InProgress
+                      identifier: Jira_Update_1
+                      spec:
+                        connectorRef: account.Harness_JIRA
+                        issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
+                        transitionTo:
+                          transitionName: In Progress
+                          status: In Progress
+                        fields:
+                          - name: Description
+                            value: Deploying in Production
+                      timeout: 1d
+                  - step:
+                      type: K8sRollingDeploy
+                      name: Rolling Deployment
+                      identifier: RollingDeployment
+                      spec:
+                        skipDryRun: false
+                        pruningEnabled: false
+                      timeout: 10m
+                      failureStrategies: []
+                  - step:
+                      type: JiraUpdate
+                      name: Jira Update Done
+                      identifier: Jira_Update_2
+                      spec:
+                        connectorRef: account.Harness_JIRA
+                        issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
+                        transitionTo:
+                          transitionName: Done
+                          status: Done
+                        fields: []
+                      timeout: 1d
+                rollbackSteps:
+                  - step:
+                      type: JiraUpdate
+                      name: Jira Update Canceled
+                      identifier: JiraUpdate
+                      spec:
+                        connectorRef: account.Harness_JIRA
+                        issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
+                        transitionTo:
+                          transitionName: Canceled
+                          status: Canceled
+                        fields:
+                          - name: Summary
+                            value: Deployment to Prod failed
+                      timeout: 1d
+                  - step:
+                      type: K8sRollingRollback
+                      name: Rolling Rollback
+                      identifier: RollingRollback
+                      spec: {}
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: StageRollback
+  allowStageExecutions: true
+  identifier: payment_service_CD
+  name: payment service CD
