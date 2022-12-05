@@ -233,8 +233,8 @@ pipeline:
                         connectorRef: account.Harness_JIRA
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
-                          transitionName: Canceled
-                          status: Canceled
+                          transitionName: Invalid
+                          status: Invalid
                         fields:
                           - name: Summary
                             value: Deployment to Prod failed
