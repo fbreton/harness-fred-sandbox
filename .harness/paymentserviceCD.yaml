@@ -99,6 +99,24 @@ pipeline:
               action:
                 type: StageRollback
     - stage:
+        name: AquaSec Scan
+        identifier: AquaSec_Scan
+        template:
+          templateRef: Aqua_Scan
+          versionLabel: v1
+          templateInputs:
+            type: SecurityTests
+            variables:
+              - name: Container_project
+                type: String
+                value: <+pipeline.stages.DeployQA.spec.artifacts.primary.imagePath>
+              - name: Container_tag
+                type: String
+                value: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
+              - name: Docker_token
+                type: Secret
+                value: freddocker
+    - stage:
         name: Jira Approve
         identifier: Jira_Approve
         description: ""
