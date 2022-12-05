@@ -203,6 +203,55 @@ pipeline:
                           - name: Description
                             value: Deploying in Production
                       timeout: 1d
+                  - stepGroup:
+                      name: Canary Deployment
+                      identifier: Canary_Deployment
+                      steps:
+                        - step:
+                            type: K8sCanaryDeploy
+                            name: Canary Deployment
+                            identifier: CanaryDeployment
+                            spec:
+                              skipDryRun: false
+                              instanceSelection:
+                                spec:
+                                  percentage: 50
+                                type: Percentage
+                            timeout: 10m
+                            failureStrategies: []
+                        - step:
+                            type: JiraApproval
+                            name: Jira Approval
+                            identifier: JiraApproval
+                            spec:
+                              connectorRef: account.Harness_JIRA
+                              projectKey: HD
+                              issueType: Story
+                              approvalCriteria:
+                                type: KeyValues
+                                spec:
+                                  matchAnyCondition: true
+                                  conditions:
+                                    - key: Status
+                                      operator: equals
+                                      value: Approved
+                              rejectionCriteria:
+                                type: KeyValues
+                                spec:
+                                  matchAnyCondition: true
+                                  conditions:
+                                    - key: Status
+                                      operator: equals
+                                      value: Rejected
+                              issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
+                            timeout: 1d
+                        - step:
+                            type: K8sCanaryDelete
+                            name: Canary Delete
+                            identifier: CanaryDelete
+                            spec:
+                              skipDryRun: false
+                            timeout: 10m
                   - step:
                       type: K8sRollingDeploy
                       name: Rolling Deployment
