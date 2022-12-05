@@ -107,12 +107,6 @@ pipeline:
           templateInputs:
             type: SecurityTests
             variables:
-              - name: Container_project
-                type: String
-                value: <+pipeline.stages.DeployQA.spec.artifacts.primary.imagePath>
-              - name: Container_tag
-                type: String
-                value: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
               - name: Docker_token
                 type: Secret
                 value: freddocker
