@@ -99,18 +99,6 @@ pipeline:
               action:
                 type: StageRollback
     - stage:
-        name: SecScan
-        identifier: SecScan
-        template:
-          templateRef: Aqua_Scan
-          versionLabel: v1
-          templateInputs:
-            type: SecurityTests
-            variables:
-              - name: Docker_token
-                type: Secret
-                value: freddocker
-    - stage:
         name: Jira Approve
         identifier: Jira_Approve
         description: ""
