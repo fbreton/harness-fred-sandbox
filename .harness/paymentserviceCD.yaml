@@ -75,7 +75,7 @@ pipeline:
                   name: Jira Update failed
                   identifier: Jira_Update_falied
                   spec:
-                    connectorRef: account.Fred_Jira
+                    connectorRef: Fred_Jira
                     issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                     transitionTo:
                       transitionName: Rejected
@@ -128,7 +128,7 @@ pipeline:
                           - key: Status
                             operator: equals
                             value: Rejected
-                    connectorRef: account.Fred_Jira
+                    connectorRef: Fred_Jira
                     projectKey: HD
                     issueType: Story
                     issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
@@ -194,7 +194,7 @@ pipeline:
                       name: Jira Update InProgress
                       identifier: Jira_Update_1
                       spec:
-                        connectorRef: account.Fred_Jira
+                        connectorRef: Fred_Jira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: In Progress
@@ -217,7 +217,7 @@ pipeline:
                       name: Jira Update Done
                       identifier: Jira_Update_2
                       spec:
-                        connectorRef: account.Fred_Jira
+                        connectorRef: Fred_Jira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: Done
@@ -230,7 +230,7 @@ pipeline:
                       name: Jira Update Canceled
                       identifier: JiraUpdate
                       spec:
-                        connectorRef: account.Fred_Jira
+                        connectorRef: Fred_Jira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: Invalid
