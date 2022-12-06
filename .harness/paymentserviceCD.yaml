@@ -38,7 +38,7 @@ pipeline:
                     fields:
                       - name: Description
                         value: Deployment to QA
-                      - name: Résumé
+                      - name: Summary
                         value: Ticket to track deployment of <+service.name>
                   timeout: 1d
               - step:
@@ -107,18 +107,30 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: HarnessApproval
-                  name: Approval
-                  identifier: Approval
+                  type: JiraApproval
+                  name: Jira Approval
+                  identifier: JiraApproval
                   spec:
-                    approvalMessage: Please review the following information and approve the pipeline progression
-                    includePipelineExecutionHistory: true
-                    approvers:
-                      userGroups:
-                        - _project_all_users
-                      minimumCount: 1
-                      disallowPipelineExecutor: false
-                    approverInputs: []
+                    connectorRef: Fred_Jira
+                    projectKey: HD
+                    issueType: Story
+                    issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
+                    approvalCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: true
+                        conditions:
+                          - key: Status
+                            operator: equals
+                            value: Approved
+                    rejectionCriteria:
+                      type: KeyValues
+                      spec:
+                        matchAnyCondition: true
+                        conditions:
+                          - key: Status
+                            operator: equals
+                            value: Rejected
                   timeout: 1d
         tags: {}
     - parallel:
