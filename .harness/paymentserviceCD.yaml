@@ -32,7 +32,7 @@ pipeline:
                   name: Jira Create
                   identifier: JiraCreate
                   spec:
-                    connectorRef: account.Fred_Jira
+                    connectorRef: Fred_Jira
                     projectKey: HD
                     issueType: Story
                     fields:
@@ -60,7 +60,7 @@ pipeline:
                   name: Jira Update QATest
                   identifier: JiraUpdate
                   spec:
-                    connectorRef: account.Fred_Jira
+                    connectorRef: Fred_Jira
                     issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
                     transitionTo:
                       transitionName: Ready For Testing
