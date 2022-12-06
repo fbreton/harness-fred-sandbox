@@ -112,7 +112,6 @@ pipeline:
                   identifier: JiraApproval
                   spec:
                     connectorRef: Fred_Jira
-                    issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
                     approvalCriteria:
                       type: KeyValues
                       spec:
@@ -129,6 +128,9 @@ pipeline:
                           - key: Status
                             operator: equals
                             value: Rejected
+                    projectKey: HD
+                    issueType: Story
+                    issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
                   timeout: 1d
         tags: {}
     - parallel:
