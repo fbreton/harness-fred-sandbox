@@ -38,7 +38,7 @@ pipeline:
                     fields:
                       - name: Description
                         value: Deployment to QA
-                      - name: Summary
+                      - name: Résumé
                         value: Ticket to track deployment of <+service.name>
                   timeout: 1d
               - step:
