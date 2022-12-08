@@ -11,15 +11,8 @@ pipeline:
         spec:
           deploymentType: Kubernetes
           service:
-            serviceRef: paymentservice
-            serviceInputs:
-              serviceDefinition:
-                type: Kubernetes
-                spec:
-                  artifacts:
-                    primary:
-                      primaryArtifactRef: <+input>
-                      sources: <+input>
+            serviceRef: <+input>
+            serviceInputs: <+input>
           environment:
             environmentRef: QAPayServ
             deployToAll: false
