@@ -1,0 +1,26 @@
+inputSet:
+  identifier: "Call_from_CI"
+  name: "Call from CI"
+  orgIdentifier: "SE_Sandbox"
+  projectIdentifier: "Fred_SandBox"
+  pipeline:
+    identifier: "payment_service_CD"
+    stages:
+    - stage:
+        identifier: "DeployQA"
+        type: "Deployment"
+        spec:
+          service:
+            serviceInputs:
+              serviceDefinition:
+                type: "Kubernetes"
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: "Deploy"
+                      sources:
+                      - identifier: "Deploy"
+                        type: "DockerRegistry"
+                        spec:
+                          tag: "<+input>"
+            serviceRef: "paymentservice"
