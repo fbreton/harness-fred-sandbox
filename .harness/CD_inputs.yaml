@@ -1,0 +1,26 @@
+inputSet:
+  identifier: "CD_inputs"
+  name: "CD inputs"
+  orgIdentifier: "SE_Sandbox"
+  projectIdentifier: "Fred_SandBox"
+  pipeline:
+    identifier: "payment_service_CD"
+    stages:
+    - stage:
+        identifier: "DeployQA"
+        type: "Deployment"
+        spec:
+          service:
+            serviceRef: "paymentservice"
+            serviceInputs:
+              serviceDefinition:
+                type: "Kubernetes"
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: "Deploy"
+                      sources:
+                      - identifier: "Deploy"
+                        type: "DockerRegistry"
+                        spec:
+                          tag: "<+trigger.payload.tag>"
