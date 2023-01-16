@@ -1,6 +1,7 @@
 inputSet:
   identifier: "Call_from_CI"
-  name: "Call from CI"
+  name: "payment-service"
+  tags: {}
   orgIdentifier: "SE_Sandbox"
   projectIdentifier: "Fred_SandBox"
   pipeline:
@@ -22,5 +23,5 @@ inputSet:
                       - identifier: "Deploy"
                         type: "DockerRegistry"
                         spec:
-                          tag: "<+input>"
+                          tag: "<+eventPayload.tag>"
             serviceRef: "paymentservice"
