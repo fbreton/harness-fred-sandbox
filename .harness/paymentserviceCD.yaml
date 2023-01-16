@@ -92,6 +92,12 @@ pipeline:
               action:
                 type: StageRollback
     - stage:
+        name: SecurityScan
+        identifier: SecurityScan
+        template:
+          templateRef: Aqua_Scan
+          versionLabel: v1
+    - stage:
         name: Approval
         identifier: Jira_Approve
         description: ""
