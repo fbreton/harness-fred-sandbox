@@ -1,0 +1,26 @@
+inputSet:
+  identifier: "BOV"
+  pipeline:
+    identifier: "payment_service_CD"
+    stages:
+    - stage:
+        identifier: "DeployQA"
+        type: "Deployment"
+        spec:
+          service:
+            serviceRef: "paymentservice"
+            serviceInputs:
+              serviceDefinition:
+                type: "Kubernetes"
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: "Deploy"
+                      sources:
+                      - identifier: "Deploy"
+                        type: "DockerRegistry"
+                        spec:
+                          tag: "101"
+  name: "BOV"
+  orgIdentifier: "SE_Sandbox"
+  projectIdentifier: "Fred_SandBox"
