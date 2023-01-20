@@ -92,6 +92,18 @@ pipeline:
               action:
                 type: StageRollback
     - stage:
+        name: SecScan
+        identifier: SecScan
+        template:
+          templateRef: Aqua_Scan
+          versionLabel: v2
+          templateInputs:
+            type: SecurityTests
+            variables:
+              - name: fail_on_severity
+                type: String
+                value: <+input>.allowedValues(CRITICAL,HIGH,MEDIUM,LOW)
+    - stage:
         name: Approval
         identifier: Jira_Approve
         description: ""
