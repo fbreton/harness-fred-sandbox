@@ -102,7 +102,7 @@ pipeline:
             variables:
               - name: fail_on_severity
                 type: String
-                value: <+input>.allowedValues(CRITICAL,HIGH,MEDIUM,LOW)
+                value: CRITICAL
     - stage:
         name: Approval
         identifier: Jira_Approve
