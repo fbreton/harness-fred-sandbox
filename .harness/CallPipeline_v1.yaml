@@ -88,11 +88,11 @@ template:
                 envVariables:
                   ACCOUNT: <+account.identifier>
                   ORGID: <+org.identifier>
-                  PROJECT: Fred_SandBox
-                  PIPELINE: payment_service_CD
-                  TRIGGER: paymentservicecanary
-                  TOKEN: <+pipeline.variables.HarnessAPI>
-                  DATA: "{\"Tag\" : \"<+pipeline.stages.DeployQA.spec.artifacts.primary.tag>\"}"
+                  PROJECT: <+input>
+                  PIPELINE: <+input>
+                  TRIGGER: <+input>
+                  TOKEN: <+input>
+                  DATA: <+input>
                 imagePullPolicy: IfNotPresent
       infrastructure:
         type: KubernetesDirect
