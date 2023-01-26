@@ -285,10 +285,11 @@ pipeline:
                             value: Deployment to Prod failed
                       timeout: 1d
                   - step:
-                      type: K8sRollingRollback
-                      name: Rolling Rollback
-                      identifier: RollingRollback
+                      type: K8sCanaryDelete
+                      name: Canary Delete_2
+                      identifier: CanaryDelete_2
                       spec: {}
+                      timeout: 10m
             tags: {}
             failureStrategies:
               - onFailure:
