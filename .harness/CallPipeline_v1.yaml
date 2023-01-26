@@ -26,7 +26,7 @@ template:
                   TRIG="$TRIGGER"
                   TOK="$TOKEN"
                   DT="$DATA"
-                  RESLIST=(ApprovalRejected Aborded Failed Success)
+                  RESLIST=(ApprovalRejected Aborded Failed Success IgnoreFailed)
 
                   UCyan='\033[4;36m'
                   Red='\033[1;31m' 
@@ -83,7 +83,7 @@ template:
                    done
 
                   echo; echo
-                  [ "$status" != "Success" ] && echo -e "$Red Pipeline $PIP finished in $status status." && exit 1
+                  [ "$status" != "Success" ] && [ "$status" != "IgnoreFailed" ] && echo -e "$Red Pipeline $PIP finished in $status status." && exit 1
                   echo -e "$Green Pipeline $PIP finished in $status status."
                 envVariables:
                   ACCOUNT: <+account.identifier>
