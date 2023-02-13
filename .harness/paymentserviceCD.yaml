@@ -197,6 +197,52 @@ pipeline:
                             value: Deploying in Production
                       timeout: 1d
                   - step:
+                      type: K8sCanaryDeploy
+                      name: Canary Deployment_1
+                      identifier: CanaryDeployment_1
+                      spec:
+                        skipDryRun: false
+                        instanceSelection:
+                          spec:
+                            percentage: 50
+                          type: Percentage
+                      timeout: 10m
+                  - step:
+                      type: Verify
+                      name: verify_dev
+                      identifier: verify_dev
+                      spec:
+                        type: Canary
+                        monitoredService:
+                          type: Default
+                          spec: {}
+                        spec:
+                          sensitivity: LOW
+                          duration: 5m
+                          deploymentTag: <+serviceConfig.artifacts.primary.tag>
+                      timeout: 2h
+                      failureStrategies:
+                        - onFailure:
+                            errors:
+                              - Verification
+                            action:
+                              type: ManualIntervention
+                              spec:
+                                timeout: 2h
+                                onTimeout:
+                                  action:
+                                    type: StageRollback
+                        - onFailure:
+                            errors:
+                              - Unknown
+                            action:
+                              type: ManualIntervention
+                              spec:
+                                timeout: 2h
+                                onTimeout:
+                                  action:
+                                    type: Ignore
+                  - step:
                       type: K8sRollingDeploy
                       name: Rolling Deployment
                       identifier: RollingDeployment
@@ -205,6 +251,12 @@ pipeline:
                         pruningEnabled: false
                       timeout: 10m
                       failureStrategies: []
+                  - step:
+                      type: K8sCanaryDelete
+                      name: Canary Delete_1
+                      identifier: CanaryDelete_1
+                      spec: {}
+                      timeout: 10m
                   - step:
                       type: JiraUpdate
                       name: Jira Update Done
@@ -233,10 +285,11 @@ pipeline:
                             value: Deployment to Prod failed
                       timeout: 1d
                   - step:
-                      type: K8sRollingRollback
-                      name: Rolling Rollback
-                      identifier: RollingRollback
+                      type: K8sCanaryDelete
+                      name: Canary Delete_2
+                      identifier: CanaryDelete_2
                       spec: {}
+                      timeout: 10m
             tags: {}
             failureStrategies:
               - onFailure:

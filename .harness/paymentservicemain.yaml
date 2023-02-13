@@ -1,0 +1,35 @@
+inputSet:
+  name: payment-service-main
+  identifier: paymentservicemain
+  orgIdentifier: SE_Sandbox
+  projectIdentifier: Fred_SandBox
+  pipeline:
+    identifier: payment_service_CD
+    stages:
+      - stage:
+          identifier: DeployQA
+          type: Deployment
+          spec:
+            service:
+              serviceRef: paymentservice
+              serviceInputs:
+                serviceDefinition:
+                  type: Kubernetes
+                  spec:
+                    artifacts:
+                      primary:
+                        primaryArtifactRef: Deploy
+                        sources:
+                          - identifier: Deploy
+                            type: DockerRegistry
+                            spec:
+                              tag: <+eventPayload.Tag>
+      - stage:
+          identifier: SecScan
+          template:
+            templateInputs:
+              type: SecurityTests
+              variables:
+                - name: fail_on_severity
+                  type: String
+                  value: CRITICAL
