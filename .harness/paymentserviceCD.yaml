@@ -91,18 +91,52 @@ pipeline:
                 - AllErrors
               action:
                 type: StageRollback
-    - stage:
-        name: Sec Scan
-        identifier: Sec_Scan
-        template:
-          templateRef: Aqua_Scan
-          versionLabel: v2
-          templateInputs:
+    - parallel:
+        - stage:
+            name: Sec Scan
+            identifier: Sec_Scan
+            template:
+              templateRef: Aqua_Scan
+              versionLabel: v2
+              templateInputs:
+                type: SecurityTests
+                variables:
+                  - name: fail_on_severity
+                    type: String
+                    value: CRITICAL
+        - stage:
+            name: PenTest
+            identifier: PenTest
             type: SecurityTests
-            variables:
-              - name: fail_on_severity
-                type: String
-                value: CRITICAL
+            spec:
+              cloneCodebase: false
+              execution:
+                steps:
+                  - step:
+                      type: Zap
+                      name: Zap
+                      identifier: Zap
+                      spec:
+                        mode: orchestration
+                        config: attack
+                        target:
+                          name: Pentesting
+                          type: instance
+                          variant: qa
+                        advanced:
+                          log:
+                            level: info
+                        instance:
+                          domain: bank-qa.cie-demo.co.uk
+                          protocol: http
+              infrastructure:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: fredgkecluster
+                  namespace: payment-service-build
+                  automountServiceAccountToken: true
+                  nodeSelector: {}
+                  os: Linux
     - stage:
         name: Approval
         identifier: Jira_Approve
