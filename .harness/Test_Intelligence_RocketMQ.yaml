@@ -12,7 +12,6 @@ pipeline:
         build: <+input>
   stages:
     - stage:
-        description: ""
         identifier: Build_and_Test
         name: Build and Test
         spec:
