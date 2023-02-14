@@ -1,13 +1,13 @@
 pipeline:
   name: Test Intelligence with Parallelism - RocketMQ
   identifier: testintelligencewithparallelismrocketmq
-  projectIdentifier: fredericbreton
-  orgIdentifier: CI_Training
+  projectIdentifier: Fred_SandBox
+  orgIdentifier: SE_Sandbox
   description: This Pipeline demonstrates using Harness Test Intelligence and Parallelization to speed up Java Maven Tests. Repository to clone https://github.com/hemanthmantri/rocketmq
   properties:
     ci:
       codebase:
-        connectorRef: FredGitHub
+        connectorRef: Fred-Repo
         repoName: rocketmq
         build: <+input>
   stages:
