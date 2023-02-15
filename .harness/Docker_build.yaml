@@ -7,7 +7,7 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: FredGitHub
+        connectorRef: FredRepo
         repoName: se-demo-docker-build
         build: <+input>
   stages:
