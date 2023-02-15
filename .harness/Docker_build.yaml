@@ -1,0 +1,38 @@
+pipeline:
+  name: Docker build
+  identifier: Docker_build
+  projectIdentifier: Fred_SandBox
+  orgIdentifier: SE_Sandbox
+  description: Pipeline to understand dockerfile and context in docker build push step. Codebase repo is github.com/shubham149/se-demo-docker-build
+  properties:
+    ci:
+      codebase:
+        connectorRef: FredGitHub
+        repoName: se-demo-docker-build
+        build: <+input>
+  stages:
+    - stage:
+        identifier: docker_build_demo
+        name: docker build demo
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  identifier: BuildandPushanimagetoDockerRegistry_1
+                  name: Build and Push an image to Docker Registry_1
+                  spec:
+                    connectorRef: FredDockerRegistry
+                    repo: dockertest
+                    tags:
+                      - se-demo-test
+                    dockerfile: ./foo/bar/Dockerfile
+                    context: ./hello/world
+                  type: BuildAndPushDockerRegistry
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        type: CI
