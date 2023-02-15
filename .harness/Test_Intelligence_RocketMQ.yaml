@@ -28,6 +28,7 @@ pipeline:
                     buildTool: Maven
                     args: test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false -T 16C -fae
                     runOnlySelectedTests: true
+                    enableTestSplitting: true
                     preCommand: |-
                       echo $HARNESS_STAGE_INDEX
                       echo $HARNESS_STAGE_TOTAL
