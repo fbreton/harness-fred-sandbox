@@ -40,7 +40,7 @@ pipeline:
                   type: RunTests
                   failureStrategies: []
                   strategy:
-                    parallelism: 3
+                    parallelism: 1
           platform:
             arch: Amd64
             os: Linux
@@ -49,4 +49,4 @@ pipeline:
             type: Cloud
         type: CI
         strategy:
-          parallelism: 1
+          parallelism: 3
