@@ -52,4 +52,5 @@ pipeline:
             type: Cloud
         type: CI
         strategy:
-          parallelism: 3
+          parallelism: 4
+          enableTestSplitting: true
