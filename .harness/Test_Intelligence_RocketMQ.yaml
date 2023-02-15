@@ -53,4 +53,4 @@ pipeline:
         type: CI
         strategy:
           parallelism: 4
-          enableTestSplitting: true
+          maxConcurrency: 2
