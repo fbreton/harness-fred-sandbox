@@ -23,7 +23,7 @@ pipeline:
                   name: Build and Push an image to Docker Registry_1
                   spec:
                     connectorRef: FredDockerRegistry
-                    repo: dockertest
+                    repo: fbreton/dockertest
                     tags:
                       - se-demo-test
                     dockerfile: ./foo/bar/Dockerfile
