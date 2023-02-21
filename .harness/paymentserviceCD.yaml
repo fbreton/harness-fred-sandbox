@@ -93,18 +93,6 @@ pipeline:
                 type: StageRollback
     - parallel:
         - stage:
-            name: Sec Scan
-            identifier: Sec_Scan
-            template:
-              templateRef: Aqua_Scan
-              versionLabel: v2
-              templateInputs:
-                type: SecurityTests
-                variables:
-                  - name: fail_on_severity
-                    type: String
-                    value: CRITICAL
-        - stage:
             name: PenTest
             identifier: PenTest
             type: SecurityTests
@@ -137,6 +125,46 @@ pipeline:
                   automountServiceAccountToken: true
                   nodeSelector: {}
                   os: Linux
+        - stage:
+            name: SecScan
+            identifier: SecScan
+            description: ""
+            type: SecurityTests
+            spec:
+              cloneCodebase: false
+              infrastructure:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: fredgkecluster
+                  namespace: payment-service-build
+                  automountServiceAccountToken: true
+                  nodeSelector: {}
+                  os: Linux
+              execution:
+                steps:
+                  - step:
+                      type: AquaTrivy
+                      name: AquaTrivy
+                      identifier: AquaTrivy
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          name: SecScan
+                          type: container
+                          variant: Trivy
+                        advanced:
+                          log:
+                            level: info
+                        resources:
+                          limits:
+                            memory: 2G
+                            cpu: "1"
+                        privileged: true
+                        image:
+                          type: docker_v2
+                          name: fbreton/payment-service
+                          tag: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
     - stage:
         name: Approval
         identifier: Jira_Approve
