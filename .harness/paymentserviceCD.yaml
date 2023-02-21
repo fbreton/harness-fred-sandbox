@@ -128,7 +128,6 @@ pipeline:
         - stage:
             name: SecScan
             identifier: SecScan
-            description: ""
             type: SecurityTests
             spec:
               cloneCodebase: false
@@ -177,6 +176,8 @@ pipeline:
                           type: docker_v2
                           name: <+pipeline.stages.DeployQA.spec.artifacts.primary.imagePath>
                           tag: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
+              sharedPaths:
+                - /var/run/
     - stage:
         name: Approval
         identifier: Jira_Approve
