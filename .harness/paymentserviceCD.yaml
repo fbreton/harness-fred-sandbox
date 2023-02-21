@@ -163,7 +163,7 @@ pipeline:
                         privileged: true
                         image:
                           type: docker_v2
-                          name: fbreton/payment-service
+                          name: <+pipeline.stages.DeployQA.spec.artifacts.primary.imagePath>
                           tag: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
     - stage:
         name: Approval
