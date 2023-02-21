@@ -143,6 +143,18 @@ pipeline:
               execution:
                 steps:
                   - step:
+                      type: Background
+                      name: DinD
+                      identifier: DinD
+                      spec:
+                        connectorRef: FredDockerRegistry
+                        image: docker:dind
+                        shell: Sh
+                        privileged: true
+                        entrypoint:
+                          - dockerd-entrypoint.sh
+                        imagePullPolicy: IfNotPresent
+                  - step:
                       type: AquaTrivy
                       name: AquaTrivy
                       identifier: AquaTrivy
