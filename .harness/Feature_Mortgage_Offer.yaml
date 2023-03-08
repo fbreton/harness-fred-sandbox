@@ -1,0 +1,84 @@
+pipeline:
+  name: Feature Mortgage Offer
+  identifier: Feature_Mortgage_Offer
+  projectIdentifier: Fred_SandBox
+  orgIdentifier: SE_Sandbox
+  tags: {}
+  stages:
+    - stage:
+        name: Push to Dev
+        identifier: Push_to_Dev
+        description: ""
+        type: FeatureFlag
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: FlagConfiguration
+                  name: Flag Configuration
+                  identifier: Flag_Configuration
+                  spec:
+                    feature: mortgageoffer
+                    environment: DEVPayServ
+                    instructions:
+                      - identifier: SetVariationForTarget
+                        type: AddTargetsToVariationTargetMap
+                        spec:
+                          variation: "true"
+                          targets:
+                            - DEV-PayServ
+                  timeout: 10m
+    - stage:
+        name: Next
+        identifier: Next
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: Ok
+                  identifier: Ok
+                  type: HarnessApproval
+                  timeout: 1d
+                  spec:
+                    approvalMessage: |-
+                      Please review the following information
+                      and approve the pipeline progression
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                      userGroups:
+                        - _project_all_users
+                    approverInputs: []
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - ApprovalRejection
+              action:
+                type: StageRollback
+    - stage:
+        name: Push to Prod
+        identifier: Push_to_Prod
+        description: ""
+        type: FeatureFlag
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: FlagConfiguration
+                  name: Flag Configuration
+                  identifier: Flag_Configuration
+                  spec:
+                    feature: mortgageoffer
+                    environment: PRODPayserv
+                    instructions:
+                      - identifier: SetVariationForTarget
+                        type: AddTargetsToVariationTargetMap
+                        spec:
+                          variation: "true"
+                          targets:
+                            - PROD-Payserv
+                  timeout: 10m
