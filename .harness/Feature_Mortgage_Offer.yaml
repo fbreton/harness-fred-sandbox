@@ -53,12 +53,6 @@ pipeline:
                         - _project_all_users
                     approverInputs: []
         tags: {}
-        failureStrategies:
-          - onFailure:
-              errors:
-                - ApprovalRejection
-              action:
-                type: StageRollback
     - stage:
         name: Push to Prod
         identifier: Push_to_Prod
