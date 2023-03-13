@@ -41,3 +41,8 @@ pipeline:
                 - AllErrors
               action:
                 type: MarkAsFailure
+        variables:
+          - name: Service
+            type: String
+            description: ""
+            value: <+input>
