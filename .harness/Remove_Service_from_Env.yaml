@@ -13,7 +13,8 @@ pipeline:
         spec:
           deploymentType: Kubernetes
           service:
-            serviceRef: <+pipeline.stages.Remove.variables.Service>
+            serviceRef: <+input>
+            serviceInputs: <+input>
           environment:
             environmentRef: <+input>
             deployToAll: false
@@ -40,8 +41,4 @@ pipeline:
                 - AllErrors
               action:
                 type: MarkAsFailure
-        variables:
-          - name: Service
-            type: String
-            description: ""
-            value: <+input>
+        variables: []
