@@ -110,7 +110,7 @@ pipeline:
                         target:
                           name: Pentesting
                           type: instance
-                          variant: qa
+                          variant: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
                         advanced:
                           log:
                             level: info
@@ -163,7 +163,7 @@ pipeline:
                         target:
                           name: SecScan
                           type: container
-                          variant: Trivy
+                          variant: <+pipeline.stages.DeployQA.spec.artifacts.primary.tag>
                         advanced:
                           log:
                             level: info
