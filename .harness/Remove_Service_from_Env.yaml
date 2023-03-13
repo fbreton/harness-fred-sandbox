@@ -24,20 +24,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: ShellScript
-                  name: echo
-                  identifier: echo
-                  spec:
-                    shell: Bash
-                    onDelegate: true
-                    source:
-                      type: Inline
-                      spec:
-                        script: echo "release-<+INFRA_KEY>"
-                    environmentVariables: []
-                    outputVariables: []
-                  timeout: 10m
-              - step:
                   type: K8sDelete
                   name: Delete
                   identifier: Delete
