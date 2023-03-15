@@ -6,7 +6,7 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: Push to Dev
+        name: Push to QA
         identifier: Push_to_Dev
         description: ""
         type: FeatureFlag
@@ -19,14 +19,14 @@ pipeline:
                   identifier: Flag_Configuration
                   spec:
                     feature: mortgageoffer
-                    environment: DEVPayServ
+                    environment: QAPayServ
                     instructions:
                       - identifier: SetVariationForTarget
                         type: AddTargetsToVariationTargetMap
                         spec:
                           variation: "true"
                           targets:
-                            - DEV-PayServ
+                            - QA-PayServ
                   timeout: 10m
     - stage:
         name: Next
