@@ -1,0 +1,30 @@
+inputSet:
+  pipeline:
+    identifier: Deploy_Service_to_env
+    stages:
+      - stage:
+          identifier: Deploy
+          type: Deployment
+          spec:
+            service:
+              serviceRef: paymentservice
+              serviceInputs:
+                serviceDefinition:
+                  type: Kubernetes
+                  spec:
+                    artifacts:
+                      primary:
+                        primaryArtifactRef: Deploy
+                        sources:
+                          - identifier: Deploy
+                            type: DockerRegistry
+                            spec:
+                              tag: "131"
+            environment:
+              environmentRef: QAPayServ
+              infrastructureDefinitions:
+                - identifier: QAGKE
+  name: PaymentService QA
+  identifier: PaymentService_QA
+  orgIdentifier: SE_Sandbox
+  projectIdentifier: Fred_SandBox
