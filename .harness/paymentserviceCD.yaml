@@ -11,8 +11,19 @@ pipeline:
         spec:
           deploymentType: Kubernetes
           service:
-            serviceRef: <+input>
-            serviceInputs: <+input>
+            serviceRef: paymentservice
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: Deploy
+                      sources:
+                        - identifier: Deploy
+                          type: DockerRegistry
+                          spec:
+                            tag: <+input>
           environment:
             environmentRef: QAPayServ
             deployToAll: false
