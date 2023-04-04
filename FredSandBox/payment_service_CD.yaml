@@ -133,7 +133,7 @@ pipeline:
               infrastructure:
                 type: KubernetesDirect
                 spec:
-                  connectorRef: fredgkecluster
+                  connectorRef: gkefred
                   namespace: payment-service-build
                   automountServiceAccountToken: true
                   nodeSelector: {}
@@ -147,7 +147,7 @@ pipeline:
               infrastructure:
                 type: KubernetesDirect
                 spec:
-                  connectorRef: fredgkecluster
+                  connectorRef: gkefred
                   namespace: payment-service-build
                   automountServiceAccountToken: true
                   nodeSelector: {}
