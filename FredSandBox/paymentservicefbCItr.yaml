@@ -1,0 +1,21 @@
+inputSet:
+  name: paymentservicefb
+  identifier: paymentservicefb
+  orgIdentifier: default
+  projectIdentifier: FredSandBox
+  pipeline:
+    identifier: payment_service_CI
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
+    variables:
+      - name: mavenversion
+        type: String
+        value: "3.8"
+      - name: javaversion
+        type: String
+        value: "8"
