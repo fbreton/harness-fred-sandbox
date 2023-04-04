@@ -133,7 +133,7 @@ pipeline:
                           spec:
                             tag: <+pipeline.sequenceId>
           environment:
-            environmentRef: DEVPayServ
+            environmentRef: DEV
             deployToAll: false
             infrastructureDefinitions:
               - identifier: DEVGKE
@@ -205,7 +205,7 @@ pipeline:
                 useFromStage:
                   stage: DEV
               environment:
-                environmentRef: DEVPayServ
+                environmentRef: DEV
                 deployToAll: false
                 infrastructureDefinitions:
                   - identifier: DEVGKE
