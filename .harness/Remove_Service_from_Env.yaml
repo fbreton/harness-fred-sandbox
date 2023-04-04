@@ -5,40 +5,84 @@ pipeline:
   orgIdentifier: SE_Sandbox
   tags: {}
   stages:
-    - stage:
-        name: Remove
-        identifier: Remove
-        description: ""
-        type: Deployment
-        spec:
-          deploymentType: Kubernetes
-          service:
-            serviceRef: <+input>
-            serviceInputs: <+input>
-          environment:
-            environmentRef: <+input>
-            deployToAll: false
-            environmentInputs: <+input>
-            serviceOverrideInputs: <+input>
-            infrastructureDefinitions: <+input>
-          execution:
-            steps:
-              - step:
-                  type: K8sDelete
-                  name: Delete
-                  identifier: Delete
-                  spec:
-                    deleteResources:
-                      type: ReleaseName
+    - parallel:
+        - stage:
+            name: Remove
+            identifier: Remove
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                serviceRef: <+input>
+                serviceInputs: <+input>
+              environment:
+                environmentRef: <+input>
+                deployToAll: false
+                environmentInputs: <+input>
+                serviceOverrideInputs: <+input>
+                infrastructureDefinitions: <+input>
+              execution:
+                steps:
+                  - step:
+                      type: K8sDelete
+                      name: Delete
+                      identifier: Delete
                       spec:
-                        deleteNamespace: false
-                  timeout: 10m
-            rollbackSteps: []
-        tags: {}
-        failureStrategies:
-          - onFailure:
-              errors:
-                - AllErrors
-              action:
-                type: MarkAsFailure
-        variables: []
+                        deleteResources:
+                          type: ReleaseName
+                          spec:
+                            deleteNamespace: false
+                      timeout: 10m
+                rollbackSteps: []
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: MarkAsFailure
+            variables: []
+        - stage:
+            name: sec
+            identifier: sec
+            description: ""
+            type: SecurityTests
+            spec:
+              cloneCodebase: true
+              infrastructure:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: fredgkecluster
+                  namespace: test
+                  automountServiceAccountToken: true
+                  nodeSelector: {}
+                  os: Linux
+              execution:
+                steps:
+                  - step:
+                      type: Security
+                      name: Security_1
+                      identifier: Security_1
+                      spec:
+                        privileged: true
+                        settings:
+                          policy_type: orchestratedScan
+                          scan_type: repository
+                          product_name: test
+                          product_config_name: test
+            when:
+              pipelineStatus: Success
+              condition: "\"A\"==\"B\""
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: Ignore
+  properties:
+    ci:
+      codebase:
+        connectorRef: FredRepo
+        repoName: payment-service-fb
+        build: <+input>
