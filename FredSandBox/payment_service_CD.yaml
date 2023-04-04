@@ -38,7 +38,7 @@ pipeline:
                   name: Jira Create
                   identifier: JiraCreate
                   spec:
-                    connectorRef: Fred_Jira
+                    connectorRef: fredjira
                     projectKey: HD
                     issueType: Story
                     fields:
@@ -66,7 +66,7 @@ pipeline:
                   name: Jira Update QATest
                   identifier: JiraUpdate
                   spec:
-                    connectorRef: Fred_Jira
+                    connectorRef: fredjira
                     issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
                     transitionTo:
                       transitionName: Ready For Testing
@@ -81,7 +81,7 @@ pipeline:
                   name: Jira Update failed
                   identifier: Jira_Update_falied
                   spec:
-                    connectorRef: Fred_Jira
+                    connectorRef: fredjira
                     issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                     transitionTo:
                       transitionName: Rejected
@@ -204,7 +204,7 @@ pipeline:
                   name: Jira Approval
                   identifier: JiraApproval
                   spec:
-                    connectorRef: Fred_Jira
+                    connectorRef: fredjira
                     projectKey: HD
                     issueType: Story
                     issueKey: <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>
@@ -287,7 +287,7 @@ pipeline:
                       name: Jira Update InProgress
                       identifier: Jira_Update_1
                       spec:
-                        connectorRef: Fred_Jira
+                        connectorRef: fredjira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: In Progress
@@ -362,7 +362,7 @@ pipeline:
                       name: Jira Update Done
                       identifier: Jira_Update_2
                       spec:
-                        connectorRef: Fred_Jira
+                        connectorRef: fredjira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: Done
@@ -375,7 +375,7 @@ pipeline:
                       name: Jira Update Canceled
                       identifier: JiraUpdate
                       spec:
-                        connectorRef: Fred_Jira
+                        connectorRef: fredjira
                         issueKey: " <+pipeline.stages.DeployQA.spec.execution.steps.JiraCreate.issue.key>"
                         transitionTo:
                           transitionName: Invalid
