@@ -1,0 +1,294 @@
+pipeline:
+  name: payment service CI
+  identifier: payment_service_CI
+  projectIdentifier: FredSandBox
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: fredrepo
+        repoName: payment-service-fb
+        build: <+input>
+  stages:
+    - stage:
+        name: build
+        identifier: build
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: RestoreCacheGCS
+                  name: RestoreCache
+                  identifier: RestoreCache
+                  spec:
+                    connectorRef: gcpfred
+                    bucket: cache-demo
+                    key: payment-service-fb-{{ checksum "./payment-service/pom.xml" }}
+                    archiveFormat: Tar
+                    resources:
+                      limits:
+                        memory: 512Mi
+                        cpu: "0.5"
+              - step:
+                  type: RunTests
+                  name: IntelligentTest
+                  identifier: IntelligentTest
+                  spec:
+                    connectorRef: gcpfred
+                    image: gcr.io/sales-209522/devx-maven:<+pipeline.variables.mavenversion>-jdk-<+pipeline.variables.javaversion>
+                    language: Java
+                    buildTool: Maven
+                    args: clean test
+                    packages: com.nikp.
+                    runOnlySelectedTests: true
+                    preCommand: |
+                      cd payment-service
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - "**/*.xml"
+                    envVariables:
+                      DRONE_COMMIT_SHA: any
+                      DRONE_REMOTE_URL: any
+                      DRONE_SOURCE_BRANCH: any
+                      DRONE_TARGET_BRANCH: any
+                      MAVEN_OPTS: "-Dmaven.repo.local=/harness/maven/repository"
+                      CONTAINER_STEP: "3"
+                    imagePullPolicy: IfNotPresent
+                    resources:
+                      limits:
+                        memory: 6Gi
+                        cpu: "6"
+              - step:
+                  type: Run
+                  name: Build
+                  identifier: Build
+                  spec:
+                    connectorRef: gcpfred
+                    image: gcr.io/sales-209522/devx-maven:<+pipeline.variables.mavenversion>-jdk-<+pipeline.variables.javaversion>
+                    shell: Sh
+                    command: |-
+                      cd payment-service
+                      mvn -Dmaven.test.skip=true clean install -X
+                    envVariables:
+                      MAVEN_OPTS: "-Dmaven.repo.local=/harness/maven/repository"
+                  description: Run the build command
+              - step:
+                  type: SaveCacheGCS
+                  name: SaveCache
+                  identifier: SaveMavenRepo
+                  spec:
+                    connectorRef: gcpfred
+                    bucket: cache-demo
+                    key: payment-service-fb-{{ checksum "./payment-service/pom.xml" }}
+                    sourcePaths:
+                      - ./maven/repository
+                    archiveFormat: Tar
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: pushToDockerHub
+                  identifier: pushToDockerHub
+                  spec:
+                    connectorRef: FredDockerRegistry
+                    repo: fbreton/payment-service
+                    tags:
+                      - <+pipeline.sequenceId>
+                    dockerfile: /harness/payment-service/Dockerfile
+                    optimize: true
+          sharedPaths:
+            - /var/run
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: gkefred
+              namespace: payment-service-build
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          service:
+            serviceRef: ""
+    - stage:
+        name: DeployDEV
+        identifier: DEV
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: paymentservice
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: Deploy
+                      sources:
+                        - identifier: Deploy
+                          type: DockerRegistry
+                          spec:
+                            tag: <+pipeline.sequenceId>
+          environment:
+            environmentRef: DEVPayServ
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: DEVGKE
+          execution:
+            steps:
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: StageRollback
+            rollbackSteps:
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+    - stage:
+        name: Ok Remove DEV
+        identifier: Ok_Remove_DEV
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: Remove Dev
+                  identifier: Remove_Dev
+                  type: HarnessApproval
+                  timeout: 1d
+                  spec:
+                    approvalMessage: |-
+                      Validate to remove the DEV env.
+                      Without action, the DEV env will be removed in 2 days
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                      userGroups:
+                        - _project_all_users
+                    approverInputs: []
+        tags: {}
+    - parallel:
+        - stage:
+            name: RemoveDEV
+            identifier: RemoveDEV
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                useFromStage:
+                  stage: DEV
+              environment:
+                environmentRef: DEVPayServ
+                deployToAll: false
+                infrastructureDefinitions:
+                  - identifier: DEVGKE
+              execution:
+                steps:
+                  - step:
+                      type: K8sDelete
+                      name: Delete
+                      identifier: Delete
+                      spec:
+                        deleteResources:
+                          type: ReleaseName
+                          spec:
+                            deleteNamespace: false
+                      timeout: 10m
+                rollbackSteps: []
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: StageRollback
+        - stage:
+            name: Ok to launch CD
+            identifier: Ok_to_launch_CD
+            description: ""
+            type: Approval
+            spec:
+              execution:
+                steps:
+                  - step:
+                      name: Launch CD
+                      identifier: Launch_CD
+                      type: HarnessApproval
+                      timeout: 2d
+                      spec:
+                        approvalMessage: After 2 days without action, the pipeline will stop without launching CD
+                        includePipelineExecutionHistory: true
+                        approvers:
+                          minimumCount: 1
+                          disallowPipelineExecutor: false
+                          userGroups:
+                            - _project_all_users
+                        approverInputs: []
+            tags: {}
+    - stage:
+        name: Run CD
+        identifier: Run_CD
+        description: ""
+        type: Pipeline
+        spec:
+          org: default
+          pipeline: payment_service_CD
+          project: FredSandBox
+          inputs:
+            identifier: payment_service_CD
+            stages:
+              - stage:
+                  identifier: DeployQA
+                  type: Deployment
+                  spec:
+                    service:
+                      serviceInputs:
+                        serviceDefinition:
+                          type: Kubernetes
+                          spec:
+                            artifacts:
+                              primary:
+                                sources:
+                                  - identifier: Deploy
+                                    type: DockerRegistry
+                                    spec:
+                                      tag: <+pipeline.sequenceId>
+          outputs: []
+  variables:
+    - name: mavenversion
+      type: String
+      default: "3.8"
+      description: ""
+      value: <+input>
+    - name: javaversion
+      type: String
+      default: "8"
+      description: ""
+      value: <+input>
