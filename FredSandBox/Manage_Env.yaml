@@ -5,93 +5,148 @@ pipeline:
   orgIdentifier: default
   tags: {}
   stages:
-    - stage:
-        name: MgtEnv
-        identifier: MgtEnv
-        description: ""
-        type: Deployment
-        spec:
-          deploymentType: Kubernetes
-          service:
-            serviceRef: <+input>
-            serviceInputs: <+input>
-          environment:
-            environmentRef: <+input>
-            deployToAll: false
-            environmentInputs: <+input>
-            serviceOverrideInputs: <+input>
-            infrastructureDefinitions: <+input>
-          execution:
-            steps:
-              - parallel:
-                  - step:
-                      type: K8sRollingDeploy
-                      name: RollingDeploy
-                      identifier: RollingDeploy
-                      spec:
-                        skipDryRun: false
-                        pruningEnabled: false
-                      timeout: 10m
-                      when:
-                        stageStatus: Success
-                        condition: <+pipeline.variables.Action> == "RollingDeploy"
-                      failureStrategies: []
-                  - step:
-                      type: K8sDelete
-                      name: Delete
-                      identifier: Delete
-                      spec:
-                        deleteResources:
-                          type: ReleaseName
+    - parallel:
+        - stage:
+            name: MgtEnv
+            identifier: MgtEnv
+            description: ""
+            type: Deployment
+            spec:
+              deploymentType: Kubernetes
+              service:
+                serviceRef: <+input>
+                serviceInputs: <+input>
+              environment:
+                environmentRef: <+input>
+                deployToAll: false
+                environmentInputs: <+input>
+                serviceOverrideInputs: <+input>
+                infrastructureDefinitions: <+input>
+              execution:
+                steps:
+                  - parallel:
+                      - step:
+                          type: K8sRollingDeploy
+                          name: RollingDeploy
+                          identifier: RollingDeploy
                           spec:
-                            deleteNamespace: false
-                      timeout: 10m
-                      when:
-                        stageStatus: Success
-                        condition: <+pipeline.variables.Action> == "Remove"
-                      failureStrategies: []
-                  - stepGroup:
-                      name: CanaryDeploy
-                      identifier: CanaryDeploy
-                      steps:
-                        - step:
-                            type: K8sCanaryDeploy
-                            name: K8sCanaryDeploy
-                            identifier: K8sCanaryDeploy
-                            spec:
-                              skipDryRun: false
-                              instanceSelection:
-                                type: Count
+                            skipDryRun: false
+                            pruningEnabled: false
+                          timeout: 10m
+                          when:
+                            stageStatus: Success
+                            condition: <+pipeline.variables.Action> == "RollingDeploy"
+                          failureStrategies: []
+                      - step:
+                          type: K8sDelete
+                          name: Delete
+                          identifier: Delete
+                          spec:
+                            deleteResources:
+                              type: ReleaseName
+                              spec:
+                                deleteNamespace: false
+                          timeout: 10m
+                          when:
+                            stageStatus: Success
+                            condition: <+pipeline.variables.Action> == "Remove"
+                          failureStrategies: []
+                      - stepGroup:
+                          name: CanaryDeploy
+                          identifier: CanaryDeploy
+                          steps:
+                            - step:
+                                type: K8sCanaryDeploy
+                                name: K8sCanaryDeploy
+                                identifier: K8sCanaryDeploy
                                 spec:
-                                  count: 1
-                            timeout: 10m
-                        - step:
-                            type: K8sRollingDeploy
-                            name: K8sRollingDeploy
-                            identifier: K8sRollingDeploy
-                            spec:
-                              skipDryRun: false
-                              pruningEnabled: false
-                            timeout: 10m
-                        - step:
-                            type: K8sCanaryDelete
-                            name: K8sCanaryDelete
-                            identifier: K8sCanaryDelete
-                            spec: {}
-                            timeout: 10m
-                      when:
-                        stageStatus: Success
-                        condition: <+pipeline.variables.Action> == "CanaryDeploy"
-                      failureStrategies: []
-                      spec: {}
-            rollbackSteps: []
-        tags: {}
-        failureStrategies:
-          - onFailure:
-              errors:
-                - AllErrors
-              action:
-                type: StageRollback
+                                  skipDryRun: false
+                                  instanceSelection:
+                                    type: Count
+                                    spec:
+                                      count: 1
+                                timeout: 10m
+                            - step:
+                                type: K8sRollingDeploy
+                                name: K8sRollingDeploy
+                                identifier: K8sRollingDeploy
+                                spec:
+                                  skipDryRun: false
+                                  pruningEnabled: false
+                                timeout: 10m
+                            - step:
+                                type: K8sCanaryDelete
+                                name: K8sCanaryDelete
+                                identifier: K8sCanaryDelete
+                                spec: {}
+                                timeout: 10m
+                          when:
+                            stageStatus: Success
+                            condition: <+pipeline.variables.Action> == "CanaryDeploy"
+                          failureStrategies: []
+                          spec: {}
+                rollbackSteps: []
+            tags: {}
+            failureStrategies:
+              - onFailure:
+                  errors:
+                    - AllErrors
+                  action:
+                    type: StageRollback
+        - stage:
+            name: SecScan
+            identifier: SecScan
+            description: ""
+            type: SecurityTests
+            spec:
+              cloneCodebase: false
+              infrastructure:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: gkefred
+                  namespace: payment-service-build
+                  automountServiceAccountToken: true
+                  nodeSelector: {}
+                  os: Linux
+              execution:
+                steps:
+                  - step:
+                      type: Background
+                      name: DinD
+                      identifier: DinD
+                      spec:
+                        connectorRef: FredDockerRegistry
+                        image: docker:dind
+                        shell: Sh
+                        privileged: true
+                        entrypoint:
+                          - dockerd-entrypoint.sh
+                        imagePullPolicy: IfNotPresent
+                  - step:
+                      type: AquaTrivy
+                      name: AquaTrivy
+                      identifier: AquaTrivy
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          name: SecScan
+                          type: container
+                          variant: <+pipeline.stages.MgtEnv.spec.artifacts.primary.tag>
+                        advanced:
+                          log:
+                            level: info
+                        resources:
+                          limits:
+                            memory: 2G
+                            cpu: "1"
+                        privileged: true
+                        image:
+                          type: docker_v2
+                          name: <+pipeline.stages.MgtEnv.spec.artifacts.primary.imagePath>
+                          tag: <+pipeline.stages.MgtEnv.spec.artifacts.primary.tag>
+              sharedPaths:
+                - /var/run/
   variables:
     - name: Action
       type: String
