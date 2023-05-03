@@ -43,10 +43,11 @@ pipeline:
                     shell: Sh
                     command: |-
                       sleep 5
-                      trivy image --scanners vuln -f json -o /var/run/results.json $IMAGE
+                      trivy image --scanners vuln -f json -o /var/run/results.json $IMAGE:$TAG
                     privileged: true
                     envVariables:
                       IMAGE: <+stage.variables.IMAGE>
+                      TAG: <+stage.variables.TAG>
                     imagePullPolicy: IfNotPresent
                     resources:
                       limits:
@@ -74,6 +75,10 @@ pipeline:
             - /var/run/
         variables:
           - name: IMAGE
+            type: String
+            description: ""
+            value: <+input>
+          - name: TAG
             type: String
             description: ""
             value: <+input>
