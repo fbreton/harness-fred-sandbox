@@ -40,7 +40,7 @@ pipeline:
                   spec:
                     connectorRef: FredDockerRegistry
                     image: aquasec/trivy
-                    shell: Bash
+                    shell: Sh
                     command: |-
                       sleep 5
                       /usr/local/bin/trivytrivy -q image --skip-update -f json -o /var/run/results.json $IMAGE
