@@ -43,7 +43,7 @@ pipeline:
                     shell: Sh
                     command: |-
                       sleep 5
-                      trivy -q image --skip-update -f json -o /var/run/results.json $IMAGE
+                      trivy -q image -f json -o /var/run/results.json $IMAGE
                     privileged: true
                     envVariables:
                       IMAGE: <+stage.variables.IMAGE>
