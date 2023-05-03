@@ -52,6 +52,24 @@ pipeline:
                       limits:
                         memory: 2G
                         cpu: "1"
+              - step:
+                  type: AquaTrivy
+                  name: AquaTrivy
+                  identifier: AquaTrivy
+                  spec:
+                    mode: ingestion
+                    config: default
+                    target:
+                      name: trivy
+                      type: container
+                      variant: <+stage.variables.IMAGE>
+                    advanced:
+                      log:
+                        level: info
+                    privileged: false
+                    imagePullPolicy: IfNotPresent
+                    ingestion:
+                      file: /var/run/results.json
           sharedPaths:
             - /var/run/
         variables:
