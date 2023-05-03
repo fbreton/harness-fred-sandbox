@@ -1,4 +1,9 @@
 inputSet:
+  name: p6
+  tags: {}
+  identifier: p6
+  orgIdentifier: default
+  projectIdentifier: FredSandBox
   pipeline:
     identifier: STO_Image
     stages:
@@ -8,8 +13,11 @@ inputSet:
           variables:
             - name: IMAGE
               type: String
-              value: fbreton/payment-service:6
-  name: p6
-  identifier: p6
-  orgIdentifier: default
-  projectIdentifier: FredSandBox
+              value: fbreton/payment-service
+            - name: TAG
+              type: String
+              value: "6"
+  cacheResponse:
+    cacheState: VALID_CACHE
+    ttlLeft: 2591532708
+    lastUpdatedAt: 1683119706246
