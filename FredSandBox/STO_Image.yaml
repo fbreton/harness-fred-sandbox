@@ -1,0 +1,51 @@
+pipeline:
+  name: STO - Image
+  identifier: STO_Image
+  projectIdentifier: FredSandBox
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Scan Image
+        identifier: Scan_Image
+        description: ""
+        type: SecurityTests
+        spec:
+          cloneCodebase: false
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: gkefred
+              namespace: dev-gke-fred
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Background
+                  name: DinD
+                  identifier: DinD
+                  spec:
+                    connectorRef: FredDockerRegistry
+                    image: docker:dind
+                    shell: Sh
+                    privileged: true
+                    entrypoint:
+                      - dockerd-entrypoint.sh
+                    imagePullPolicy: IfNotPresent
+              - step:
+                  type: Run
+                  name: Scan
+                  identifier: Scan
+                  spec:
+                    connectorRef: FredDockerRegistry
+                    image: aquasec/trivy
+                    shell: Bash
+                    command: test
+                    privileged: true
+                    imagePullPolicy: IfNotPresent
+                    resources:
+                      limits:
+                        memory: 2G
+                        cpu: "1"
