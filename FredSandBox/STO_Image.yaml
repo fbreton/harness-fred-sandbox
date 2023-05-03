@@ -61,9 +61,9 @@ pipeline:
                     mode: ingestion
                     config: default
                     target:
-                      name: trivy
+                      name: trivy-<+stage.variables.IMAGE>
                       type: container
-                      variant: <+stage.variables.IMAGE>
+                      variant: <+stage.variables.TAG>
                     advanced:
                       log:
                         level: info
