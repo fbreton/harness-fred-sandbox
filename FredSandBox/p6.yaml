@@ -1,0 +1,15 @@
+inputSet:
+  pipeline:
+    identifier: STO_Image
+    stages:
+      - stage:
+          identifier: Scan_Image
+          type: SecurityTests
+          variables:
+            - name: IMAGE
+              type: String
+              value: fbreton/payment-service:6
+  name: p6
+  identifier: p6
+  orgIdentifier: default
+  projectIdentifier: FredSandBox
