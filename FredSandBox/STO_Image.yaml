@@ -43,7 +43,7 @@ pipeline:
                     shell: Sh
                     command: |-
                       sleep 5
-                      trivy image -f json -o /var/run/results.json $IMAGE
+                      trivy image --scanners vuln -f json -o /var/run/results.json $IMAGE
                     privileged: true
                     envVariables:
                       IMAGE: <+stage.variables.IMAGE>
