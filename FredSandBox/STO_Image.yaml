@@ -8,7 +8,6 @@ pipeline:
     - stage:
         name: Scan Image
         identifier: Scan_Image
-        description: ""
         type: SecurityTests
         spec:
           cloneCodebase: false
@@ -42,10 +41,19 @@ pipeline:
                     connectorRef: FredDockerRegistry
                     image: aquasec/trivy
                     shell: Bash
-                    command: test
+                    command: trivy -q image --skip-update -f json -o results.json $IMAGE
                     privileged: true
+                    envVariables:
+                      IMAGE: <+stage.variables.IMAGE>
                     imagePullPolicy: IfNotPresent
                     resources:
                       limits:
                         memory: 2G
                         cpu: "1"
+          sharedPaths:
+            - /var/run/
+        variables:
+          - name: IMAGE
+            type: String
+            description: ""
+            value: <+input>
