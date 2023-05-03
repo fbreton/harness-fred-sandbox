@@ -41,7 +41,9 @@ pipeline:
                     connectorRef: FredDockerRegistry
                     image: aquasec/trivy
                     shell: Bash
-                    command: trivy -q image --skip-update -f json -o results.json $IMAGE
+                    command: |-
+                      sleep 5
+                      /usr/local/bin/trivytrivy -q image --skip-update -f json -o /var/run/results.json $IMAGE
                     privileged: true
                     envVariables:
                       IMAGE: <+stage.variables.IMAGE>
