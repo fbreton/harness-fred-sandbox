@@ -10,6 +10,7 @@ pipeline:
         connectorRef: fredrepo
         repoName: payment-service-fb
         build: <+input>
+        prCloneStrategy: SourceBranch
   stages:
     - stage:
         name: build
